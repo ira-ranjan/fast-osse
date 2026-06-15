@@ -1,6 +1,6 @@
 # %%
 import datetime as dt
-import obs_to_obs_seq_in.py as obsin
+import obs_to_obs_seq_in as obsin
 import numpy as np
 
 # %%
