@@ -4,7 +4,7 @@
 # removed type as input -> automatically adds obs for u_velocity and v_velocity and ssh
 # are we generating obs_err_var ?
 
-# documentation written using claude
+# documentation written with help of claude
 
 # %%
 import datetime as dt
