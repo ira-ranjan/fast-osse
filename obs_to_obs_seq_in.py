@@ -3,15 +3,33 @@ import pydartdiags.obs_sequence.obs_sequence as obsq
 import pandas as pd
 import datetime as dt
 
-# %% converts datetime object to DART readable sconds, days
-def convert_to_dart_time(time: dt.datetime):
-    """Converts datetime object to a list of seconds, days after 1601"""
-    dart_time = time - dt.datetime(1601, 1, 1)
-    return [dart_time.seconds, dart_time.days]
-
-# %% creates a new obs_seq object with 0 copies (obs_seq.in)
+# %%
 def create_obs_seq_in():
-    """Creates new obs_sequence object with column titles, header, and attributes"""
+    """
+    Creates and returns a new, empty ObsSequence object initialized with
+    0 copies and an empty structured DataFrame (in the format of an obs_seq.in file), ready for ingesting observation
+    metadata. 
+
+    Initializes the following attributes on the ObsSequence object:
+        - loc_mod (str): Location module set to 'loc3d' (3D location format).
+        - copie_names (list): Names of all copy fields (empty at creation).
+        - qc_copie_names (list): Names of QC copy fields (empty at creation).
+        - non_qc_copie_names (list): Names of non-QC copy fields (empty at creation).
+        - n_copies (int): Total number of copy fields, initialized to 0.
+        - n_non_qc (int): Number of non-QC copies, initialized to 0.
+        - n_qc (int): Number of QC copies, initialized to 0.
+        - df (pd.DataFrame): Empty DataFrame with columns from _column_headers(),
+          reordered so 'obs_num' and 'linked_list' are the first two columns
+          (as required by ObsSequence.write_obs_seq()).
+
+    Column reordering:
+        'obs_num' is moved to position 0 and 'linked_list' to position 1 to
+        satisfy the column order expected by ObsSequence.write_obs_seq() in pyDARTdiags.
+
+    Returns:
+        obsq.ObsSequence: A blank ObsSequence instance with a zero-observation
+        header and an empty, correctly ordered DataFrame, in the format of an obs_seq.in file.
+    """
     obs_seq = obsq.ObsSequence(None)
     obs_seq.loc_mod = 'loc3d'
     obs_seq.copie_names = []
@@ -22,26 +40,75 @@ def create_obs_seq_in():
     obs_seq.n_qc = 0
     obs_seq.df = pd.DataFrame(columns=obs_seq._column_headers())
     obs_seq.create_header(0)
-    #moves columns to fulfill list_to_obs requirements
+    #moves columns to fulfill ObsSeq.write_obs_seq() requirements
     column_to_move = obs_seq.df.pop('obs_num')
     obs_seq.df.insert(0, 'obs_num', column_to_move)
     column_to_move = obs_seq.df.pop('linked_list')
     obs_seq.df.insert(1, 'linked_list', column_to_move)
     return obs_seq
 
-# %% creates an empty list to store observations
-def create_obs_list():
-    list_rows = []
-    return list_rows
-
 # %% adds observations to a list
-def add_obs_to_list(list_rows: list, latitude: float, longitude: float, vertical: float, vert_unit: int, obs_type: str, datetime: dt.datetime, obs_err_var: float, metadata=[], external_FO=[]):
-    dart_time = convert_to_dart_time(datetime)
-    new_obs = {'longitude': float(longitude), 'latitude': float(latitude), 'vertical': vertical, 'vert_unit': vert_unit, 'type': obs_type, 'metadata': metadata, 'external_FO': external_FO, 'seconds': dart_time[0], 'days':dart_time[1],'time' : datetime.strftime("%H:%M:%S"), 'obs_err_var': obs_err_var}
+def add_obs_to_list(list_rows: list, latitude: float, longitude: float, vertical: float, vert_unit: int, obs_type: str, timestamp: dt.datetime, obs_err_var: float, metadata=[], external_FO=[]) -> None:
+    """
+    Constructs a single observation dictionary and appends it in-place to
+    list_rows. The observation is converted to DART time format before storage.
+
+    Args:
+        list_rows (list): Accumulator list to which the new observation dict
+            is appended. Modified in-place; nothing is returned.
+        latitude (float): Latitude of the observation in degrees.
+        longitude (float): Longitude of the observation in degrees.
+        vertical (float): Vertical coordinate of the observation (value
+            interpreted according to vert_unit).
+        vert_unit (int): DART vertical coordinate type code (e.g. pressure,
+            height, model level).
+        obs_type (str): DART observation type string
+            (e.g. 'RADIOSONDE_TEMPERATURE').
+        datetime (dt.datetime): Observation time. Converted internally to
+            DART time (seconds, days) via convert_to_dart_time(); also stored
+            as an 'HH:MM:SS' time string.
+        obs_err_var (float): Observation error variance (not standard
+            deviation). Units must match the observation type.
+        metadata (list, optional): Additional metadata fields associated with
+            the observation. Defaults to [].
+        external_FO (list, optional): External forward operator values.
+            Defaults to [].
+
+    Returns:
+        None: list_rows is mutated directly.
+    """
+    dart_time = obsq.convert_to_dart_time(timestamp)
+    new_obs = {'longitude': float(longitude), 'latitude': float(latitude), 'vertical': vertical, 'vert_unit': vert_unit, 'type': obs_type, 'metadata': metadata, 'external_FO': external_FO, 'seconds': dart_time[0], 'days':dart_time[1],'time' : timestamp.strftime("%H:%M:%S"), 'obs_err_var': obs_err_var}
     list_rows.append(new_obs)
 
 # %% adds list to obs seq dataframe
-def add_list_to_df(list_rows, obs_seq):
+def add_list_to_df(list_rows, obs_seq) -> None:
+    """
+    Converts a list of observation dictionaries into a DataFrame and merges it
+    into the existing obs_seq.df, then refreshes the ObsSequence header and
+    attributes to reflect the updated data.
+
+    Args:
+        list_rows (list[dict]): List of observation dictionaries, each
+            produced by add_obs_to_list(). All dicts must share the same
+            keys; missing keys in any row will produce NaN columns in the
+            merged DataFrame.
+        obs_seq (obsq.ObsSequence): ObsSequence object to update. Its df,
+            header, and attributes are all mutated in-place.
+
+    Returns:
+        None: obs_seq is mutated directly.
+
+     Example:
+        .. code-block:: python
+
+            obs_seq = create_obs_seq_in()
+            rows = []
+            add_obs_to_list(rows, latitude=40.0, longitude=-105.3, vertical=850.0, vert_unit=2,
+                            obs_type='RADIOSONDE_TEMPERATURE', 
+                            datetime=dt.datetime(2024, 1, 15, 12, 0, 0), obs_err_var=1.0)
+            add_list_to_df(rows, obs_seq)
+    """
     df_new = pd.DataFrame(list_rows)
     obs_seq.df = pd.concat([obs_seq.df, df_new], ignore_index=True)
     obs_seq.create_header_from_dataframe()
