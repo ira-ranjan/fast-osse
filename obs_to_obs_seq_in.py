@@ -3,6 +3,11 @@ import pydartdiags.obs_sequence.obs_sequence as obsq
 import pandas as pd
 import datetime as dt
 
+
+def convert_to_dart_time(time: dt.datetime):
+    """Converts datetime object to a list of seconds, days after 1601"""
+    dart_time = time - dt.datetime(1601, 1, 1)
+    return [dart_time.seconds, dart_time.days]
 # %%
 def create_obs_seq_in():
     """
@@ -77,8 +82,8 @@ def add_obs_to_list(list_rows: list, latitude: float, longitude: float, vertical
     Returns:
         None: list_rows is mutated directly.
     """
-    dart_time = obsq.convert_to_dart_time(timestamp)
-    new_obs = {'longitude': float(longitude), 'latitude': float(latitude), 'vertical': vertical, 'vert_unit': vert_unit, 'type': obs_type, 'metadata': metadata, 'external_FO': external_FO, 'seconds': dart_time[0], 'days':dart_time[1],'time' : timestamp.strftime("%H:%M:%S"), 'obs_err_var': obs_err_var}
+    dart_time = obsq._convert_to_dart_time(timestamp)
+    new_obs = {'longitude': float(longitude), 'latitude': float(latitude), 'vertical': vertical, 'vert_unit': vert_unit, 'type': obs_type, 'metadata': metadata, 'external_FO': external_FO, 'seconds': dart_time[0], 'days':dart_time[1],'time' : timestamp, 'obs_err_var': obs_err_var}
     list_rows.append(new_obs)
 
 # %% adds list to obs seq dataframe
@@ -115,6 +120,14 @@ def add_list_to_df(list_rows, obs_seq) -> None:
     obs_seq.update_attributes_from_df()
 
 # %%
+
+def split_obs_seq_and_write(obs_seq: obsq.ObsSequence, column_name: str):
+    dfs_list = [group for _, group in obs_seq.df.groupby('str')]
+    for ii in range(len(dfs_list)):
+        df_day = dfs_list[ii].to_dict(orient='records')
+        obs_seq_day = create_obs_seq_in()
+        add_list_to_df(df_day,obs_seq_day)
+        obs_seq_day.write_obs_seq(f"obs_seq_{dfs_list[ii]['days'].iloc[0]}.in")
 
 
 
