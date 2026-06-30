@@ -150,7 +150,6 @@ def split_obs_seq_and_write(obs_seq: obsq.ObsSequence, column_name: str):
         value in the first row of each group.
 
     Example:
-        >>> obs_seq = read_full_sequence('obs_seq.in')  # multi-day sequence
         >>> split_obs_seq_and_write(obs_seq, 'days')
         # Writes: obs_seq_150633.in, obs_seq_150634.in, obs_seq_150635.in, ...
     """
