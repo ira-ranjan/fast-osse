@@ -1,3 +1,4 @@
+
 # %%
 import pydartdiags.obs_sequence.obs_sequence as obsq
 import pandas as pd
@@ -122,12 +123,43 @@ def add_list_to_df(list_rows, obs_seq) -> None:
 # %%
 
 def split_obs_seq_and_write(obs_seq: obsq.ObsSequence, column_name: str):
-    dfs_list = [group for _, group in obs_seq.df.groupby('str')]
+    """
+    Splits an ObsSequence's DataFrame into groups based on unique values of
+    a specified column, then writes each group out as its own obs_seq.in
+    file named by that column's value.
+
+    For each unique value in column_name, this creates a fresh, empty
+    ObsSequence via create_obs_seq_in(), populates it with that subset's
+    rows via add_list_to_df(), and writes the result to disk. Commonly used
+    to split a multi-day obs sequence into per-day files (e.g. grouping by
+    'days') for separate perfect_model_obs or filter runs.
+
+    Args:
+        obs_seq (obsq.ObsSequence): Source ObsSequence containing the full,
+            unsplit set of observations in obs_seq.df.
+        column_name (str): Name of the column to group by (e.g. 'days').
+            Each unique value produces one output file, and the value
+            itself is used in the output filename.
+
+    Returns:
+        None: Writes one obs_seq_<value>.in file per group to the current
+        working directory. Nothing is returned.
+    
+    Output files:
+        Named obs_seq_{value}.in, where {value} is taken from column_name's
+        value in the first row of each group.
+
+    Example:
+        >>> obs_seq = read_full_sequence('obs_seq.in')  # multi-day sequence
+        >>> split_obs_seq_and_write(obs_seq, 'days')
+        # Writes: obs_seq_150633.in, obs_seq_150634.in, obs_seq_150635.in, ...
+    """
+    dfs_list = [group for _, group in obs_seq.df.groupby(f'{column_name}', sort='False')]
     for ii in range(len(dfs_list)):
         df_day = dfs_list[ii].to_dict(orient='records')
-        obs_seq_day = create_obs_seq_in()
-        add_list_to_df(df_day,obs_seq_day)
-        obs_seq_day.write_obs_seq(f"obs_seq_{dfs_list[ii]['days'].iloc[0]}.in")
+        obs_seq_group = create_obs_seq_in()
+        add_list_to_df(df_day,obs_seq_group)
+        obs_seq_group.write_obs_seq(f"obs_seq_{dfs_list[ii][f'{column_name}'].iloc[0]}.in")
 
 
 
