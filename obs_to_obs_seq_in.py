@@ -5,10 +5,6 @@ import pandas as pd
 import datetime as dt
 
 
-def convert_to_dart_time(time: dt.datetime):
-    """Converts datetime object to a list of seconds, days after 1601"""
-    dart_time = time - dt.datetime(1601, 1, 1)
-    return [dart_time.seconds, dart_time.days]
 # %%
 def create_obs_seq_in():
     """
