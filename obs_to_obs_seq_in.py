@@ -11,7 +11,7 @@ def create_obs_seq_in():
     Creates and returns a new, empty ObsSequence object initialized with
     0 copies and an empty structured DataFrame (in the format of an obs_seq.in file), ready for ingesting observation
     metadata. 
-
+ 
     Initializes the following attributes on the ObsSequence object:
         - loc_mod (str): Location module set to 'loc3d' (3D location format).
         - copie_names (list): Names of all copy fields (empty at creation).
