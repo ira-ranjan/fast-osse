@@ -118,7 +118,7 @@ def add_list_to_df(list_rows, obs_seq) -> None:
 
 # %%
 
-def split_obs_seq_and_write(obs_seq: obsq.ObsSequence, column_name: str):
+def split_obs_seq_and_write(obs_seq: obsq.ObsSequence, column_name: str, output_dir: str):
     """
     Splits an ObsSequence's DataFrame into groups based on unique values of
     a specified column, then writes each group out as its own obs_seq.in
@@ -154,7 +154,45 @@ def split_obs_seq_and_write(obs_seq: obsq.ObsSequence, column_name: str):
         df_day = dfs_list[ii].to_dict(orient='records')
         obs_seq_group = create_obs_seq_in()
         add_list_to_df(df_day,obs_seq_group)
-        obs_seq_group.write_obs_seq(f"obs_seq_{dfs_list[ii][f'{column_name}'].iloc[0]}.in")
+        obs_seq_group.write_obs_seq(f"obs_seq_{dfs_list[ii][f'{column_name}'].iloc[0].in")
+
+    def split_obs_seq_by_time(obs_seq: obsq.ObsSequence, output_dir: str = '.') -> None:
+    """
+    Splits an ObsSequence into separate obs_seq.in files grouped by unique
+    values in the 'time' column, which contains datetime objects.
+
+    Each unique datetime produces one output file named by that datetime.
+    Equivalent to split_obs_seq_and_write but operates on datetime objects
+    in the 'time' column rather than integer 'days' values.
+
+    Args:
+        obs_seq (obsq.ObsSequence): Source ObsSequence to split.
+        output_dir (str): Directory to write output files. Defaults to
+            current working directory.
+
+    Returns:
+        None: Writes one obs_seq_<datetime>.in file per unique time value.
+
+    Example:
+        >>> split_obs_seq_by_time(obs_seq, output_dir='/path/to/output')
+        # Writes: obs_seq_2015-01-01 00:00:00.in
+        #         obs_seq_2015-01-01 03:00:00.in ...
+    """
+    output_path = Path(output_dir)
+    output_path.mkdir(parents=True, exist_ok=True)
+
+    dfs_list = [group for _, group in obs_seq.df.groupby('time', sort=False)]
+
+    for ii in range(len(dfs_list)):
+        df_group = dfs_list[ii].to_dict(orient='records')
+        obs_seq_group = create_obs_seq_in()
+        add_list_to_df(df_group, obs_seq_group)
+
+        time_val = dfs_list[ii]['time'].iloc[0]
+        # Format datetime to avoid colons in filename (invalid on some systems)
+        time_str = time_val.strftime('%Y-%m-'+'0'+'%d-%H')
+        out_path = output_path / f"obs_seq_{time_str}.in"
+        obs_seq_group.write_obs_seq(str(out_path))
 
 def split_obs_seq_by_time(obs_seq: obsq.ObsSequence, output_dir: str = '.'):
         
