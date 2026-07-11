@@ -10,10 +10,10 @@
 import datetime as dt
 import obs_to_obs_seq_in as obsin
 import numpy as np
-
+import pydartdiags.obs_sequence.obs_sequence as obsq
 
 # %%
-def interpolate_times(start: dt.datetime, end: dt.datetime, frequency: float):
+def interpolate_times(start: dt.datetime, end: dt.datetime, frequency: dt.timedelta):
     """
     Generate a list of evenly-spaced datetimes between two times.
 
@@ -42,12 +42,12 @@ def interpolate_times(start: dt.datetime, end: dt.datetime, frequency: float):
             )
             # Returns a list of datetimes at 12:00, 12:10, 12:20, 12:30
     """
+
     times = []
-    step = dt.timedelta(minutes=frequency)
     current_time = start
     while current_time <= end:
         times.append(current_time)
-        current_time += step
+        current_time += frequency
     return times
 
 # %%
@@ -103,7 +103,7 @@ class MooredObs:
                     4: "scale height",
                 }
     
-    def __init__(self, lat: float, lon: float, vert_start: float, vert_end: float, vert_gap: float, vert_unit: str, start_time: dt.datetime, end_time: dt.datetime, obs_err_var: float, frequency: float, metadata = [], external_FO = []):
+    def __init__(self, obs_seq: obsq.ObsSequence, lat: float, lon: float, vert_start: float, vert_end: float, vert_gap: float, vert_unit: str, start_time: dt.datetime, end_time: dt.datetime, obs_err_var: float, frequency: float, metadata = [], external_FO = []):
         if vert_unit not in self.vert.values():
             raise ValueError(
                 f"Invalid vert_unit '{vert_unit}'. "
@@ -114,9 +114,9 @@ class MooredObs:
         self.vert_unit = vert_unit
         self.start_time = start_time
         self.end_time = end_time
-        self.metadata = self.data_generator(vert_start, vert_end, vert_gap, obs_err_var, frequency, metadata, external_FO)
+        self.metadata = self.data_generator(obs_seq, vert_start, vert_end, vert_gap, obs_err_var, frequency, metadata, external_FO)
 
-    def data_generator(self, vert_start: float, vert_end: float, vert_gap: float, obs_err_var: float, frequency: float, metadata = [], external_FO = []) -> list:
+    def data_generator(self, obs_seq, vert_start: float, vert_end: float, vert_gap: float, obs_err_var: float, frequency: float, metadata = [], external_FO = []) -> list:
         """
         Create a list with U, V velocity observations and sea surface height over a
         vertical profile and time series.
@@ -148,10 +148,10 @@ class MooredObs:
         time_list = interpolate_times(self.start_time, self.end_time, frequency) #frequency in mins
         for time in time_list:
             for vert in vert_list:
-                obsin.add_obs_to_list(list_obs, self.lon, self.lat, float(vert), self.vert_unit, 'U_VELOCITY', time, obs_err_var, metadata, external_FO)
-                obsin.add_obs_to_list(list_obs, self.lon, self.lat, float(vert), self.vert_unit, 'V_VELOCITY', time, obs_err_var, metadata, external_FO)
-                obsin.add_obs_to_list(list_obs, self.lon, self.lat, float(vert), self.vert_unit, 'SEA SURFACE HEIGHT', time, obs_err_var, metadata, external_FO)
-        return list_obs
+                obsin.add_obs_to_list(list_obs, self.lon, self.lat, float(vert), self.vert_unit, 'GLIDER_U_CURRENT_COMPONENT', time, obs_err_var, metadata, external_FO)
+                obsin.add_obs_to_list(list_obs, self.lon, self.lat, float(vert), self.vert_unit, 'GLIDER_V_CURRENT_COMPONENT', time, obs_err_var, metadata, external_FO)
+                obsin.add_obs_to_list(list_obs, self.lon, self.lat, float(vert), self.vert_unit, 'SEA_SURFACE_HEIGHT', time, obs_err_var, metadata, external_FO)
+        obsin.add_list_to_df(list_obs, obs_seq)
 
 # %%
 
