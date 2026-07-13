@@ -234,7 +234,6 @@ def split_obs_seq_by_time(obs_seq: obsq.ObsSequence, output_dir: str, file_stub:
         else:
             time_str = bin_time.strftime('%Y-%m-'+'0'+'%d-%H')
         case_stub = Path(f"{file_stub}{time_str}")
-        print(case_stub)
         out_path = output_path / case_stub / "obs_seq.in"
         obs_seq_group.write_obs_seq(str(out_path))
 
