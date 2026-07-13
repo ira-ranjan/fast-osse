@@ -5,7 +5,7 @@ import shutil
 
 
 def split_single_hz_file(input_file: str, output_dir: str, static_file: str,
-                         ocean_geom_file: str, pmo_exec: str):
+                         ocean_geom_file: str, pmo_exec: str, input_nml: str):
     """
     Splits a single daily MOM6 h.z file containing 8 x 3-hourly records into
     individual files, each in its own subdirectory.
@@ -42,9 +42,10 @@ def split_single_hz_file(input_file: str, output_dir: str, static_file: str,
         print(f"  wrote: {sub_dir.name}/{out_name}")
 
         # Copy static files and PMO executable into subdirectory
-        shutil.copy(static_file, sub_dir)
-        shutil.copy(ocean_geom_file, sub_dir)
-        shutil.copy(pmo_exec, sub_dir)
+        shutil.copy(static_file, sub_dir/"mom6.static.nc")
+        shutil.copy(ocean_geom_file, sub_dir/"ocean_geometry.nc")
+        shutil.copy(pmo_exec, sub_dir/"perfect_model_obs")
+        shutil.copy(input_nml, sub_dir/"input.nml")
         pmo_path = sub_dir / Path(pmo_exec).name
         pmo_path.chmod(0o755)
     ds.close()
@@ -52,8 +53,8 @@ def split_single_hz_file(input_file: str, output_dir: str, static_file: str,
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 6:
+    if len(sys.argv) != 7:
         print("Usage: python split_one_hz_file.py <input_file> <output_dir>")
         sys.exit(1)
 
-    split_single_hz_file(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5])
+    split_single_hz_file(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5], sys.argv[6])
