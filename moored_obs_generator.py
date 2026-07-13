@@ -150,10 +150,8 @@ class MooredObs:
             for vert in vert_list:
                 obsin.add_obs_to_list(list_obs, self.lon, self.lat, float(vert), self.vert_unit, 'GLIDER_U_CURRENT_COMPONENT', time, obs_err_var, metadata, external_FO)
                 obsin.add_obs_to_list(list_obs, self.lon, self.lat, float(vert), self.vert_unit, 'GLIDER_V_CURRENT_COMPONENT', time, obs_err_var, metadata, external_FO)
-                obsin.add_obs_to_list(list_obs, self.lon, self.lat, float(vert), self.vert_unit, 'SEA_SURFACE_HEIGHT', time, obs_err_var, metadata, external_FO)
         obsin.add_list_to_df(list_obs, obs_seq)
 
-# %%
 
 # %%
 

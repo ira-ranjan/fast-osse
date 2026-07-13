@@ -3,7 +3,7 @@
 import pydartdiags.obs_sequence.obs_sequence as obsq
 import pandas as pd
 import datetime as dt
-from pathlib import Path
+
 
 # %%
 def create_obs_seq_in():
@@ -149,7 +149,7 @@ def split_obs_seq_and_write(obs_seq: obsq.ObsSequence, column_name: str, output_
         >>> split_obs_seq_and_write(obs_seq, 'days')
         # Writes: obs_seq_150633.in, obs_seq_150634.in, obs_seq_150635.in, ...
     """
-    dfs_list = [group for _, group in obs_seq.df.groupby(f'{column_name}', sort=False)]
+    dfs_list = [group for _, group in obs_seq.df.groupby(f'{column_name}', sort='False')]
     for ii in range(len(dfs_list)):
         df_day = dfs_list[ii].to_dict(orient='records')
         obs_seq_group = create_obs_seq_in()
@@ -216,27 +216,8 @@ def split_obs_seq_by_time(obs_seq: obsq.ObsSequence, output_dir: str, file_stub:
         else:
             time_str = bin_time.strftime('%Y-%m-'+'0'+'%d-%H')
         case_stub = Path(f"{file_stub}{time_str}")
-        print(case_stub)
         out_path = output_path / case_stub / f"obs_seq_{time_str}.in"
         obs_seq_group.write_obs_seq(str(out_path))
-
-def split_obs_seq_by_time(obs_seq: obsq.ObsSequence, output_dir: str = '.'):
-        
-    output_path = Path(output_dir)
-    output_path.mkdir(parents=True, exist_ok=True)
-
-    dfs_list = [group for _, group in obs_seq.df.groupby('time', sort=False)]
-
-    for ii in range(len(dfs_list)):
-        df_group = dfs_list[ii].to_dict(orient='records')
-        obs_seq_group = create_obs_seq_in()
-        add_list_to_df(df_group, obs_seq_group)
-
-        time_val = dfs_list[ii]['time'].iloc[0]
-        time_str = time_val.strftime('%Y-%m-%d-%H')
-        out_path = output_path / f"obs_seq_{time_str}.in"
-        obs_seq_group.write_obs_seq(str(out_path))
-
 
 
 
