@@ -1,0 +1,37 @@
+#!/bin/bash
+#PBS -A P93300012
+#PBS -N pmo_array
+#PBS -j oe
+#PBS -q casper
+#PBS -l walltime=00:30:00
+#PBS -l select=1:ncpus=128:mpiprocs=128
+#PBS -J 0-NN
+
+SPLIT_DIR="/glade/derecho/scratch/iranjan/EEP-osse-1"
+
+# Build directory list in same order as submission script
+mapfile -t SUBDIRS < <(find ${SPLIT_DIR} -maxdepth 1 -mindepth 1 -type d | sort)
+
+WORK_DIR=${SUBDIRS[$PBS_ARRAY_INDEX]}
+
+if [ -z "${WORK_DIR}" ]; then
+    echo "No directory for index ${PBS_ARRAY_INDEX}"
+    exit 1
+fi
+
+echo "Array index: ${PBS_ARRAY_INDEX}"
+echo "Working directory: ${WORK_DIR}"
+
+cd ${WORK_DIR}
+
+# Verify required files are present
+for f in perfect_model_obs input.nml; do
+    if [ ! -f "${f}" ]; then
+        echo "ERROR: missing ${f} in ${WORK_DIR}"
+        exit 1
+    fi
+done
+
+chmod +x perfect_model_obs
+export FORT_FMT_RECL=1024
+mpibind ./perfect_model_obs
