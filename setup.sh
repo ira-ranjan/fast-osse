@@ -15,6 +15,7 @@ STATIC_FILE="/glade/derecho/scratch/iranjan/archive/EEP_MITgcm185Lvgrid_Whitt202
 OCEAN_GEOM_FILE="/glade/derecho/scratch/iranjan/archive/EEP_MITgcm185Lvgrid_Whitt2026hgrid/ocn/hist/EEP_MITgcm185Lvgrid_Whitt2026hgrid.mom6.h.ocean_geometry.nc"
 PMO_EXEC="/glade/work/iranjan/DART/models/MOM6/work/perfect_model_obs"
 INPUT_NML="/glade/work/iranjan/fast-osse/input.nml"
+OBS_TO_NCDF="/glade/work/iranjan/DART/models/MOM6/work/obs_seq_to_netcdf"
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Build array of matching files at submission time
@@ -39,7 +40,7 @@ echo "Processing file: ${FILE}"
 
 source /glade/work/iranjan/fastosse/bin/activate
 
-python ${PYTHON_SCRIPT} "${FILE}" "${OUTPUT_DIR}" "${STATIC_FILE}" "${OCEAN_GEOM_FILE}" "${PMO_EXEC}" "${INPUT_NML}"
+python ${PYTHON_SCRIPT} "${FILE}" "${OUTPUT_DIR}" "${STATIC_FILE}" "${OCEAN_GEOM_FILE}" "${PMO_EXEC}" "${INPUT_NML}" "${OBS_TO_NCDF}
 
 
 
