@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-INPUT_DIR="/glade/derecho/scratch/iranjan/archive/EEP_MITgcm185Lvgrid_Whitt2026hgrid/ocn/hist/" # directory containing mom6.h.z. files
+INPUT_DIR="/glade/derecho/scratch/iranjan/archive/EEP_MITgcm185Lvgrid_Whitt2026hgrid/ocn/hist" # directory containing mom6.h.z. files
 JOB_SCRIPT="setup.sh" # bash script which calls python script for splitting files
 
 NN=$(ls ${INPUT_DIR}/*.mom6.h.z.????-??-???.nc 2>/dev/null | wc -l) # NN = number of mom6.h.z files

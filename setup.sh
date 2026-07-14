@@ -8,13 +8,13 @@
 #PBS -J 0-NN
 
 # ── Configuration ────────────────────────────────────────────────────────────
-INPUT_DIR="/glade/derecho/scratch/iranjan/archive/eep-slice-test"
-OUTPUT_DIR="/glade/derecho/scratch/iranjan/archive/eep-slice-test/split"
+INPUT_DIR="/glade/derecho/scratch/iranjan/archive/EEP_MITgcm185Lvgrid_Whitt2026hgrid/ocn/hist/"
+OUTPUT_DIR="/glade/derecho/scratch/iranjan/EEP-osse-1"
 PYTHON_SCRIPT="/glade/work/iranjan/fast-osse/split_one_hz_file.py"
 STATIC_FILE="/glade/derecho/scratch/iranjan/archive/EEP_MITgcm185Lvgrid_Whitt2026hgrid/ocn/hist/EEP_MITgcm185Lvgrid_Whitt2026hgrid.mom6.h.static.nc"
 OCEAN_GEOM_FILE="/glade/derecho/scratch/iranjan/archive/EEP_MITgcm185Lvgrid_Whitt2026hgrid/ocn/hist/EEP_MITgcm185Lvgrid_Whitt2026hgrid.mom6.h.ocean_geometry.nc"
-PMO_EXEC="/glade/derecho/scratch/iranjan/forIra/pmo_mom6/perfect_model_obs"
-INPUT_NML ="/glade/derecho/scratch/iranjan/archive/eep-slice-test/input.nml"
+PMO_EXEC="/glade/work/iranjan/DART/models/MOM6/work/perfect_model_obs"
+INPUT_NML="/glade/work/iranjan/fast-osse/input.nml"
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Build array of matching files at submission time
