@@ -4,6 +4,7 @@ import pydartdiags.obs_sequence.obs_sequence as obsq
 import pandas as pd
 import datetime as dt
 from pathlib import Path
+import subprocess
 
 # %%
 def create_obs_seq_in():
@@ -156,7 +157,7 @@ def split_obs_seq_and_write(obs_seq: obsq.ObsSequence, column_name: str):
         add_list_to_df(df_day,obs_seq_group)
         obs_seq_group.write_obs_seq(f"obs_seq_{dfs_list[ii][f'{column_name}'].iloc[0]}.in")
 
-def split_obs_seq_by_time(obs_seq: obsq.ObsSequence, output_dir: str = '.'):
+"""def split_obs_seq_by_time(obs_seq: obsq.ObsSequence, output_dir: str = '.'):
         
     output_path = Path(output_dir)
     output_path.mkdir(parents=True, exist_ok=True)
@@ -171,7 +172,7 @@ def split_obs_seq_by_time(obs_seq: obsq.ObsSequence, output_dir: str = '.'):
         time_val = dfs_list[ii]['time'].iloc[0]
         time_str = time_val.strftime('%Y-%m-%d-%H')
         out_path = output_path / f"obs_seq_{time_str}.in"
-        obs_seq_group.write_obs_seq(str(out_path))
+        obs_seq_group.write_obs_seq(str(out_path))"""
 
 
 def split_obs_seq_by_time(obs_seq: obsq.ObsSequence, output_dir: str, file_stub: str) -> None:
@@ -205,6 +206,7 @@ def split_obs_seq_by_time(obs_seq: obsq.ObsSequence, output_dir: str, file_stub:
 
     # Shift times so 03:00 is the first bin and 24:00 (midnight) is the last
     # by flooring to 3-hour bins anchored at 03:00
+  
     def assign_bin(t):
         # Subtract 1 second so that exactly 03:00, 06:00 etc fall in their own bin
         hour_bin = ((t.hour - 1) // 3 + 1) * 3   # gives 3,6,9,...,24
@@ -212,7 +214,6 @@ def split_obs_seq_by_time(obs_seq: obsq.ObsSequence, output_dir: str, file_stub:
             # Roll midnight forward to next day
             next_day = t.replace(hour=0, minute=0, second=0, microsecond=0) + dt.timedelta(days=1)
             return next_day
-        
         return t.replace(hour=hour_bin, minute=0, second=0, microsecond=0)
 
     df['_time_bin'] = df['time'].apply(assign_bin)
@@ -233,9 +234,16 @@ def split_obs_seq_by_time(obs_seq: obsq.ObsSequence, output_dir: str, file_stub:
             time_str = prev_day.strftime('%Y-%m-'+'0'+'%d') + '-24'
         else:
             time_str = bin_time.strftime('%Y-%m-'+'0'+'%d-%H')
-        case_stub = Path(f"{file_stub}{time_str}")
-        out_path = output_path / case_stub / "obs_seq.in"
+        case_stub = Path(f"outputs")
+        out_path = output_path / case_stub / f"obs_seq.in-{time_str}"
         obs_seq_group.write_obs_seq(str(out_path))
+        pmo_path = r"/glade/work/iranjan/DART/models/MOM6/work/perfect_model_obs"
+        obs_to_ncdf_path = r"/glade/work/iranjan/DART/models/MOM6/work/obs_seq_to_netcdf"
+        working_dir = str(output_path / case_stub)
+        subprocess.run([pmo_path], cwd=working_dir, check=True, capture_output=True, text=True)
+        subprocess.run([obs_to_ncdf_path], cwd=working_dir, capture_output=True, check=True, text=True)
+        
+
 
 
 
