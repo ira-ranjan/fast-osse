@@ -5,6 +5,8 @@ import pandas as pd
 import datetime as dt
 from pathlib import Path
 import subprocess
+import shutil
+import os
 
 # %%
 def create_obs_seq_in():
@@ -234,17 +236,30 @@ def split_obs_seq_by_time(obs_seq: obsq.ObsSequence, output_dir: str, file_stub:
             time_str = prev_day.strftime('%Y-%m-'+'0'+'%d') + '-24'
         else:
             time_str = bin_time.strftime('%Y-%m-'+'0'+'%d-%H')
-        case_stub = Path(f"outputs")
-        out_path = output_path / case_stub / f"obs_seq.in-{time_str}"
+        case_stub = Path(f"{file_stub}{time_str}")
+        out_path = output_path / case_stub / "obs_seq.in"
         obs_seq_group.write_obs_seq(str(out_path))
+        # execute perfect_model_obs and obs_seq_to_netcdf
         pmo_path = r"/glade/work/iranjan/DART/models/MOM6/work/perfect_model_obs"
         obs_to_ncdf_path = r"/glade/work/iranjan/DART/models/MOM6/work/obs_seq_to_netcdf"
         working_dir = str(output_path / case_stub)
+        print("Starting executable ./perfect_model_obs ...")
         subprocess.run([pmo_path], cwd=working_dir, check=True, capture_output=True, text=True)
+        print("Starting executable ./obs_seq_to_netcdf ...")
         subprocess.run([obs_to_ncdf_path], cwd=working_dir, capture_output=True, check=True, text=True)
-        
-
-
+        # ove output to a new subdirectory
+        local_output = "obs_epoch_001.nc"
+        final_dir = os.path.join(output_path, "outputs")
+        new_name = f"obs_file-{time_str}.nc"
+        final_destination = os.path.join(final_dir, new_name)
+        os.makedirs(final_dir, exist_ok=True)
+        check_path = f"{output_path}/{case_stub}/{local_output}"
+        if os.path.exists(check_path):
+            shutil.move(check_path, final_destination)
+            print(f"Successfully moved file to: {final_destination}")
+        else:
+            print(f"{check_path}")
+            raise FileNotFoundError(f"Executable failed to generate {new_name}")
 
 
 
