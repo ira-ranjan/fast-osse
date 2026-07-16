@@ -1,3 +1,6 @@
+# Claude made most of this
+# TO-DO: figure out what it did
+
 import pydartdiags.obs_sequence.obs_sequence as obsq
 import xarray as xr
 import sys
@@ -159,7 +162,8 @@ def reshape_obs_to_uv_samples(df, depth_round=None, time_tolerance=None):
         lat=('glider', glider_lat.reindex(out.glider.values).values),
         lon=('glider', glider_lon.reindex(out.glider.values).values),
     )
- 
+    out = out.sortby('obs_depth', ascending=False)
+    
     # --- 9. confirm uniform depth spacing across the full range ---
     depths = np.sort(out.obs_depth.values)
     dz = np.diff(depths)
