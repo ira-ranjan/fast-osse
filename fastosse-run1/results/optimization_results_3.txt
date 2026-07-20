@@ -1,0 +1,11 @@
+2oo iter, no min dist
+================ OPTIMIZATION COMPLETE ================
+Optimization Status: Maximum number of iterations has been exceeded.
+Minimum Error Norm Reached: 0.00039833632526097246
+Best Glider Tracking Coordinates Found:
+  Glider 1: Lat=1.944810, Lon=218.958969
+  Glider 2: Lat=-0.830216, Lon=220.949205
+  Glider 3: Lat=1.541578, Lon=220.088301
+  Glider 4: Lat=0.095224, Lon=221.500000
+  Glider 5: Lat=1.143542, Lon=218.587123
+  Glider 6: Lat=-0.185698, Lon=219.205653

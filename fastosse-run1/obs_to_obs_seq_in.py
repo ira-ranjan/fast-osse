@@ -1,4 +1,4 @@
-
+# date had to be reformatted specifically for weekly output case
 # %%
 import pydartdiags.obs_sequence.obs_sequence as obsq
 import make_uv_samples as makeuv
@@ -88,6 +88,7 @@ def add_obs_to_list(list_rows: list, latitude: float, longitude: float, vertical
     list_rows.append(new_obs)
 
 # %% adds list to obs seq dataframe
+
 def add_list_to_df(list_rows, obs_seq) -> None:
     """
     Converts a list of observation dictionaries into a DataFrame and merges it
@@ -120,7 +121,7 @@ def add_list_to_df(list_rows, obs_seq) -> None:
     obs_seq.create_header_from_dataframe()
     obs_seq.update_attributes_from_df()
 
-# %%
+# function to split obs_seqs by any column
 
 """def split_obs_seq_and_write(obs_seq: obsq.ObsSequence, output_dir: str, file_stub: str, column_name: str):
 
@@ -174,98 +175,6 @@ def add_list_to_df(list_rows, obs_seq) -> None:
         add_list_to_df(df_day,obs_seq_group)
         obs_seq_group.write_obs_seq(f"obs_seq_{dfs_list[ii][f'{time}'].iloc[0].strftime('%Y-%m-'+'0'+'%d')}.in")"""
 
-from pathlib import Path
-import pandas as pd
-
-
-"""def split_obs_seq_by_week(obs_seq: "obsq.ObsSequence", output_dir: str, file_stub: str, sim_start):
-
-    Splits an ObsSequence into weekly groups, where each calendar month
-    RESTARTS its own week-0 anchor at sim_start's day-of-month (rather than
-    binning continuously across month boundaries). E.g. if sim_start is the
-    4th, weeks within September start at the 4th, 11th, 18th, 25th — and
-    October independently restarts its own week-0 at the 4th, not continuing
-    from wherever September's last week left off.
-
-    Each week's obs_seq.in is written into its own subdirectory, named
-    {file_stub}{YYYY}-{MM:02d}-{DD:03d} using that week's actual start date
-    (DD zero-padded to 3 digits, matching the existing per-hour directory
-    convention, e.g. ...h.z.2015-01-001-24).
-
-    Args:
-        obs_seq: Source ObsSequence with the full, unsplit observations.
-        output_dir: Base directory under which week subdirectories are created.
-        file_stub: Filename prefix for each subdirectory
-            (e.g. "EEP_MITgcm185Lvgrid_Whitt2026hgrid.mom6.h.z.").
-        sim_start: datetime-like (str or pd.Timestamp) — reference date whose
-            day-of-month defines each month's week-0 anchor. Required
-            explicitly; guessing wrong silently shifts every week boundary.
-
-    Output:
-        One {output_dir}/{file_stub}{week_start_date}/obs_seq.in per
-        (month, week) group.
-
-    Returns:
-        None.
-    
-    sim_start = pd.Timestamp(sim_start)
-    anchor_day = sim_start.day
-    output_path = Path(output_dir)
-    output_path.mkdir(parents=True, exist_ok=True)
-
-    df = obs_seq.df.copy()
-    if not pd.api.types.is_datetime64_any_dtype(df['time']):
-        raise TypeError(
-            f"obs_seq.df['time'] is not a datetime dtype "
-            f"({df['time'].dtype}) — check the ObsSequence was loaded "
-            f"correctly before splitting."
-        )
-
-    # each row's month-anchor = same year/month as the row, but day = anchor_day
-    # (e.g. anchor_day=4 -> Sept rows anchor to Sept 4, Oct rows to Oct 4)
-    month_anchor = pd.to_datetime(
-        {'year': df['time'].dt.year, 'month': df['time'].dt.month, 'day': anchor_day}
-    )
-    days_since_anchor = (df['time'] - month_anchor).dt.days
-    if (days_since_anchor < 0).any():
-        n_before = (days_since_anchor < 0).sum()
-        print(f"NOTE: {n_before} obs fall before their month's anchor day "
-              f"({anchor_day}) — e.g. obs on Sept 1-3 if anchor_day=4. "
-              f"These get a negative 'week' bin (-1), grouped separately "
-              f"rather than merged into week 0 or dropped. Confirm this is "
-              f"what you want; if these should belong to the previous "
-              f"month's last week instead, this function does not handle "
-              f"that — flag it and I'll adjust.")
-
-    df['month_key'] = df['time'].dt.to_period('M')
-    df['week'] = days_since_anchor // 7
-
-    groups = [group for _, group in df.groupby(['month_key', 'week'], sort=True)]
-    print(f"Found {len(groups)} (month, week) groups spanning "
-          f"{df['time'].min()} to {df['time'].max()}.")
-
-    for group_df in groups:
-        month_key = group_df['month_key'].iloc[0]
-        week_num = group_df['week'].iloc[0]
-        this_anchor = pd.Timestamp(year=month_key.year, month=month_key.month, day=anchor_day)
-        week_start = this_anchor + pd.Timedelta(days=int(week_num * 7))
-
-        dir_name = f"{file_stub}{week_start.year}-{week_start.month:02d}-{week_start.day:03d}"
-        out_dir = output_path / dir_name
-        out_dir.mkdir(parents=True, exist_ok=True)
-        out_path = out_dir / "obs_seq.in"
-
-        actual_start = group_df['time'].min()
-        if abs((actual_start - week_start).days) > 6:
-            print(f"NOTE: week starting {week_start.date()} — first actual "
-                  f"obs is {actual_start} (>6 days off nominal start). "
-                  f"Check for gaps in obs coverage for this week.")
-
-        df_group = group_df.drop(columns=['month_key', 'week']).to_dict(orient='records')
-        obs_seq_group = create_obs_seq_in()
-        add_list_to_df(df_group, obs_seq_group)
-        obs_seq_group.write_obs_seq(str(out_path))
-        print(f"Wrote {len(group_df)} obs to {out_path}")"""
 
 
 def split_obs_seq_by_date(obs_seq: "obsq.ObsSequence", output_dir: str, file_stub: str):
@@ -279,7 +188,7 @@ def split_obs_seq_by_date(obs_seq: "obsq.ObsSequence", output_dir: str, file_stu
     (e.g., ...h.z.2015-01-001).
 
     Args:
-        obs_seq: Source ObsSequence with the full, unsplit observations.
+        obs_seq: ObsSequence with the full, unsplit observations.
         output_dir: Base directory under which daily subdirectories are created.
         file_stub: Filename prefix for each subdirectory
             (e.g. "EEP_MITgcm185Lvgrid_Whitt2026hgrid.mom6.h.z.").
@@ -312,13 +221,14 @@ def split_obs_seq_by_date(obs_seq: "obsq.ObsSequence", output_dir: str, file_stu
     for group_df in groups:
         # Extract the target date for this specific chunk
         current_date = group_df['_date_key'].iloc[0]
-        
+        modified_date = current_date + dt.timedelta(days=2)
         # Format the folder name matching the 3-digit day padding rule: {DD:03d}
         # Example: Day 4 of the month becomes 004
-        dir_name = f"{file_stub}{current_date.year}-{current_date.month:02d}-{current_date.day:03d}"
+        dir_name = f"{file_stub}{modified_date.year}-{modified_date.month:02d}-{modified_date.day:03d}"
         
         out_dir = output_path / dir_name
-        out_dir.mkdir(parents=True, exist_ok=True)
+        if not out_dir.exists():
+            raise FileNotFoundError(f"ERROR: Directory does not exist: {out_dir}")
         out_path = out_dir / "obs_seq.in"
 
         # Remove the temporary grouping key before exporting columns to the dictionary
@@ -328,20 +238,9 @@ def split_obs_seq_by_date(obs_seq: "obsq.ObsSequence", output_dir: str, file_stu
         obs_seq_group = create_obs_seq_in()
         add_list_to_df(df_group, obs_seq_group)
         obs_seq_group.write_obs_seq(str(out_path))
-        
 
 
-
-# --- usage ---
-# split_obs_seq_by_week(
-#     obs_seq,
-#     output_dir="/glade/derecho/scratch/iranjan/weekly_eep_osse",
-#     file_stub="EEP_MITgcm185Lvgrid_Whitt2026hgrid.mom6.h.z.",
-#     sim_start="2015-09-04",
-# )
-
-
-def split_obs_seq_by_time(obs_seq: obsq.ObsSequence, output_dir: str, file_stub: str) -> None:
+def split_obs_seq_by_3hr(obs_seq: obsq.ObsSequence, output_dir: str, file_stub: str) -> None:
     """
     Splits an ObsSequence into separate obs_seq.in files grouped by unique
     values in the 'time' column, which contains datetime objects.
